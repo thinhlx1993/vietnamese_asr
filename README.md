@@ -55,6 +55,8 @@ I created a free-to-use API server to submit the inference data
 
 The file input should have a bitrate of 16000 to avoid hidden bugs
 
+File duration must be lower than 10s
+
 ```python
 import subprocess
 
