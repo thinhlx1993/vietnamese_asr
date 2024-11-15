@@ -38,10 +38,19 @@ Tokenizer SentencePieceTokenizer initialized with 128 tokens
 
 # How to use
 
-We offer a free-to-use API server to submit the inference data
+Download model weight here
+
+https://drive.google.com/drive/folders/1SVNibfeMshfVkmatIU90LYok_Mf0zMD0?usp=sharing
+
+Install Nemo Frameworks
+
+https://github.com/NVIDIA/NeMo
+
+You can try demo in the example folder
+
+I created a free-to-use API server to submit the inference data
 
 ```python
-
 import requests
 import os
 import time
