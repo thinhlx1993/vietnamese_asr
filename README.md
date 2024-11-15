@@ -65,5 +65,3 @@ print(result.stdout.encode('utf-8').decode('unicode_escape'))
 # Contact
 
 thinhle.ict@gmail.com | [Thinh Le's LinkedIn Profile](https://www.linkedin.com/in/thinhleict/)
-
-google-site-verification: google153badcd435db830.html
