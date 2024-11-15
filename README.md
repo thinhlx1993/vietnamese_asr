@@ -45,7 +45,7 @@ Tokenizer SentencePieceTokenizer initialized with 128 tokens
 
 https://drive.google.com/drive/folders/1SVNibfeMshfVkmatIU90LYok_Mf0zMD0?usp=sharing
 
-## nstall Nemo Frameworks
+## Install Nemo Frameworks
 
 https://github.com/NVIDIA/NeMo
 
