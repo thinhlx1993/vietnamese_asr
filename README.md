@@ -64,7 +64,7 @@ with open(file_path, 'rb') as file_stream:
     start_time = time.time()
     
     # Send the POST request with streaming enabled
-    response = requests.post(url, files=files, headers={'accept': 'application/json'})
+    response = requests.post(url, files=files, headers={'accept': 'application/json'}, timeout=2)
     
     # Print the results
     print("Status code:", response.status_code)
