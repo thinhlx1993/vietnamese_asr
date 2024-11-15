@@ -7,10 +7,13 @@
 I collect data from many different sources for training. The training data contains over 10k hours of speech data from the sources below
 
 - Common Voice dataset
+- VIVOS dataset
 - (AN4) database audio files
 - Vietnamese Speech recognition
 - Youtube public dataset
-- Data collecting from public space
+- Vietnamese Dialogue Telephony speech dataset
+- Travel Call Center Speech Data
+- LibriSpeech
 
 # Models setup
 
@@ -38,17 +41,19 @@ Tokenizer SentencePieceTokenizer initialized with 128 tokens
 
 # How to use
 
-Download model weight here
+## Download model weight here
 
 https://drive.google.com/drive/folders/1SVNibfeMshfVkmatIU90LYok_Mf0zMD0?usp=sharing
 
-Install Nemo Frameworks
+## nstall Nemo Frameworks
 
 https://github.com/NVIDIA/NeMo
 
-You can try demo in the example folder
+## You can try demo in the example folder or this one
 
 I created a free-to-use API server to submit the inference data
+
+The file input should have a bitrate of 16000 to avoid hidden bugs
 
 ```python
 import subprocess
