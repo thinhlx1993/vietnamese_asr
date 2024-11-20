@@ -1,5 +1,7 @@
 # The best Vietnamese speech recognition using Conforme-CTC 2024
 
+https://github.com/thinhlx1993/vietnamese_asr
+
 [![PWC](https://avatars.githubusercontent.com/u/1728152?s=48&v=4)](https://github.com/NVIDIA/NeMo)
 
 # Training data
