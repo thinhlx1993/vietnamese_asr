@@ -82,11 +82,13 @@ def save_and_transcribe_audio():
 
             # Process transcription result
             unicode_escape = result.stdout.decode('utf-8')
+            # Decode the unicode escape sequences (e.g., "\u01b0" becomes "ư")
+            decoded_text = unicode_escape.encode('utf-8').decode('unicode_escape')
 
             if len(unicode_escape) < 10:
                 os.remove(wav_filename)
             else:
-                print(f"Transcription for {wav_filename}: {unicode_escape}")
+                print(f"Transcription for {wav_filename}: {decoded_text}")
 
         except Exception as e:
             print(f"Error processing audio file {wav_filename}: {e}")
