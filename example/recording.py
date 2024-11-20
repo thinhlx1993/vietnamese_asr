@@ -10,32 +10,34 @@ from pydub import AudioSegment
 import tempfile
 
 # Constants for recording
-format = pyaudio.paInt16  # 16-bit per sample
+record_format = pyaudio.paInt16  # 16-bit per sample
 sample_rate_in = 44100  # Input sample rate (44100 Hz)
 sample_rate_out = 16000  # Output sample rate (16000 Hz)
-chunk = 4410  # Record in chunks of 1024 samples
+chunk = 512  # Record in chunks of 512 samples
 channels = 1
-record_seconds = 5  # Duration of each recording
+record_seconds = 10  # Duration of each recording
 input_device = 2  # Device index for your microphone (change as needed)
 
 audio = pyaudio.PyAudio()
 os.makedirs("data", exist_ok=True)
+
 # Open the audio stream for recording
-stream = audio.open(format=format,
-                    channels=channels,
-                    rate=sample_rate_in,
-                    input=True,
-                    frames_per_buffer=chunk,
-                    input_device_index=input_device)
+p = pyaudio.PyAudio()
+stream = p.open(format=record_format,  # audio format
+                channels=channels,  # number of channels (1 for mono)
+                rate=sample_rate_in,  # sample rate
+                input=True,  # input stream
+                input_device_index=input_device,  # input device index
+                frames_per_buffer=chunk)  # buffer size
 
 # Queue to hold audio buffers for transcription
-audio_queue = queue.Queue()
+audio_queue = queue.Queue(maxsize=1)
 
 # Save the audio buffer as a .wav file in-memory
 def save_wav_buffer(audio_buffer, filename="temp.wav"):
     with wave.open(filename, 'wb') as wf:
         wf.setnchannels(channels)
-        wf.setsampwidth(pyaudio.PyAudio().get_sample_size(format))
+        wf.setsampwidth(pyaudio.PyAudio().get_sample_size(record_format))
         wf.setframerate(sample_rate_in)  # Input sample rate (44100 Hz)
         wf.writeframes(audio_buffer.read())
 
@@ -87,6 +89,9 @@ def save_and_transcribe_audio():
 
             if len(unicode_escape) < 10:
                 os.remove(wav_filename)
+            elif "1 per 1 second" in decoded_text:
+                print("Server overload")
+                os.remove(wav_filename)
             else:
                 print(f"Transcription for {wav_filename}: {decoded_text}")
 
@@ -106,7 +111,6 @@ try:
         # Record audio to an in-memory buffer
         audio_buffer = io.BytesIO()
         frames = []
-
         for _ in range(0, int(sample_rate_in / chunk * record_seconds)):
             data = stream.read(chunk)
             frames.append(data)
@@ -115,10 +119,10 @@ try:
         audio_buffer.write(b''.join(frames))
         audio_buffer.seek(0)
 
-        # Put the buffer in the queue for saving and transcription
+        # # Put the buffer in the queue for saving and transcription
         audio_queue.put(audio_buffer)
 
-        # Pause briefly between recordings if desired (optional)
+        # # Pause briefly between recordings if desired (optional)
         # time.sleep(1)  # Adjust the delay as needed
 
 except KeyboardInterrupt:
