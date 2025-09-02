@@ -8,6 +8,10 @@ import pyaudio
 import wave
 import io
 import queue
+from pixel_ring import pixel_ring
+
+pixel_ring.off()  # Turn off the LED
+
 
 class ReSpeakerMic:
     def __init__(self, rate=16000, frames_size=1024):
