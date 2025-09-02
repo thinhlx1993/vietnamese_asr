@@ -20,23 +20,37 @@ class ReSpeakerMic:
         
         # Find the ReSpeaker device
         device_index = None
+        print("Searching for ReSpeaker 4 Mic Array device...")
         for i in range(self.pyaudio_instance.get_device_count()):
             dev = self.pyaudio_instance.get_device_info_by_index(i)
             name = dev['name']
             input_channels = dev['maxInputChannels']
+            print(f"Device {i}: {name} with {input_channels} input channels")
             if 'ReSpeaker 4 Mic Array' in name and input_channels >= self.channels:
                 device_index = i
+                print(f"Found ReSpeaker device at index {i}")
                 break
         
         if device_index is None:
-            device_index = None
+            # List all available input devices for debugging
+            print("\nAvailable input devices:")
+            for i in range(self.pyaudio_instance.get_device_count()):
+                dev = self.pyaudio_instance.get_device_info_by_index(i)
+                if dev['maxInputChannels'] > 0:
+                    print(f"  {i}: {dev['name']} (channels: {dev['maxInputChannels']})")
+            
+            raise RuntimeError(
+                "ReSpeaker 4 Mic Array device not found! "
+                "Please ensure the device is connected and has proper permissions. "
+                "Check the device list above for available input devices."
+            )
         
         # Open audio stream
         self.stream = self.pyaudio_instance.open(
             start=False,
             format=pyaudio.paInt16,
             input_device_index=device_index,
-            channels=self.channels if device_index is not None else 0,
+            channels=self.channels,
             rate=int(self.rate),
             frames_per_buffer=int(self.frames_size),
             stream_callback=self._callback,

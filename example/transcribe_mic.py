@@ -4,6 +4,7 @@ import torch
 import nemo.collections.asr as nemo_asr
 import torchaudio
 import os
+import sys
 from datetime import datetime
 
 from nemo.collections.asr.parts.submodules.ctc_decoding import CTCDecodingConfig
@@ -17,13 +18,15 @@ record_seconds = 10  # Duration of each recording
 os.environ['TQDM_DISABLE'] = '1'
 
 # Create transcription folder if it doesn't exist
-transcription_dir = "example/transcription"
+transcription_dir = "transcription"
 os.makedirs(transcription_dir, exist_ok=True)
 
 # Initialize ReSpeaker microphone
+print("Initializing ReSpeaker microphone...", flush=True)
 respeaker_mic = ReSpeakerMic(rate=sample_rate, frames_size=chunk)
 
 # Load the ASR model from a .nemo file
+print("Loading Vietnamese ASR model...", flush=True)
 model = nemo_asr.models.ASRModel.restore_from("models/vietnamese_asr_confome_ctc.nemo")
 model.sample_rate = sample_rate
 
@@ -40,6 +43,7 @@ decoding_cfg.beam.flashlight_cfg.beam_size_token = 32
 decoding_cfg.beam.flashlight_cfg.beam_threshold = 25.0
 
 model.change_decoding_strategy(decoding_cfg)
+print("Model loaded successfully!", flush=True)
 
 def get_daily_filename():
     """Get the filename for today's transcription file"""
@@ -76,17 +80,25 @@ def transcribe_audio(waveform_data):
     return transcription
 
 # Start ReSpeaker microphone
+print("Starting ReSpeaker microphone...", flush=True)
 respeaker_mic.start()
-
-print("Start ReSpeaker microphone")
+print("ReSpeaker microphone started successfully!", flush=True)
+print(f"Recording {record_seconds}-second audio chunks...", flush=True)
+print("=" * 50, flush=True)
 
 try:
+    cycle_count = 0
     while True:
+        cycle_count += 1
+        print(f"Cycle {cycle_count}: Recording {record_seconds} seconds...", flush=True)
+        
         # Clear previous recording data
         respeaker_mic.clear_audio_buffer()
         
         # Record for the specified duration
         time.sleep(record_seconds)
+        
+        print(f"Cycle {cycle_count}: Processing audio...", flush=True)
         
         # Get all recorded audio as a single waveform
         with respeaker_mic.lock:
@@ -111,13 +123,25 @@ try:
                 if transcription and len(transcription) > 0:
                     text = transcription[0].text
                     if text.strip() and len(text) > 1:
-                        print(text)
+                        print(f"Cycle {cycle_count}: TRANSCRIPTION: {text}", flush=True)
                         # Save transcription to daily file
                         save_transcription(text)
+                        print(f"Cycle {cycle_count}: Saved to {get_daily_filename()}", flush=True)
+                    else:
+                        print(f"Cycle {cycle_count}: No speech detected", flush=True)
+                else:
+                    print(f"Cycle {cycle_count}: Transcription failed", flush=True)
+            else:
+                print(f"Cycle {cycle_count}: No audio data captured", flush=True)
+        
+        print(f"Cycle {cycle_count}: Completed", flush=True)
+        print("-" * 30, flush=True)
 
 except KeyboardInterrupt:
-    pass
+    print("Stopping service...", flush=True)
 
 finally:
     # Stop ReSpeaker microphone completely
+    print("Stopping ReSpeaker microphone...", flush=True)
     respeaker_mic.stop()
+    print("Service stopped.", flush=True)

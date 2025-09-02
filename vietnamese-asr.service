@@ -1,0 +1,33 @@
+[Unit]
+Description=Vietnamese ASR Transcription Service
+After=network.target sound.target
+Wants=network.target sound.target
+
+[Service]
+Type=simple
+User=thinh
+Group=thinh
+WorkingDirectory=/home/thinh/nemo/vietnamese_asr/example
+Environment=PATH=/home/thinh/venv/bin
+ExecStart=/home/thinh/venv/bin/python transcribe_mic.py
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+# Audio device access - essential for microphone detection
+SupplementaryGroups=audio
+NoNewPrivileges=false
+
+# Environment variables for audio and display
+Environment=PYTHONPATH=/home/thinh/nemo/vietnamese_asr/example
+Environment=XDG_RUNTIME_DIR=/run/user/1000
+Environment=DISPLAY=:0
+Environment=PULSE_RUNTIME_PATH=/run/user/1000/pulse
+Environment=ALSA_CONFIG_PATH=/usr/share/alsa/alsa.conf
+
+# Audio device permissions
+UMask=0022
+
+[Install]
+WantedBy=multi-user.target
