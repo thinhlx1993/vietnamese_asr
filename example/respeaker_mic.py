@@ -13,8 +13,17 @@ class ReSpeakerMic:
     def __init__(self, rate=16000, frames_size=1024):
         self.rate = rate
         self.frames_size = frames_size
-        self.channels = 6  # ReSpeaker 4 Mic Array has 6 channels
-        self.voice_channel = 0  # Channel 0 is the voice channel
+        self.channels = 6  # ReSpeaker 4 Mic Array with 6_channels_firmware.bin
+        # Channel mapping for 6_channels_firmware.bin (official Seeed documentation):
+        # Channel 0: processed audio for ASR (Voice channel)
+        # Channel 1-4: 4 microphones' raw data  
+        # Channel 5: playback
+        self.voice_channel = 0  # Channel 0 contains processed audio for ASR
+        print("Using 6_channels_firmware.bin (6 channels)")
+        print("Channel 0: Processed audio for ASR (Voice channel)")
+        print("Channel 1-4: Raw microphone data")
+        print("Channel 5: Playback data")
+        
         self.pyaudio_instance = pyaudio.PyAudio()
         self.stop_event = threading.Event()
         
@@ -93,7 +102,7 @@ class ReSpeakerMic:
         self.pyaudio_instance.terminate()
     
     def get_voice_channel_audio(self):
-        """Get the latest voice channel audio as a buffer"""
+        """Get the latest voice channel audio (channel 0 - processed for ASR) as a buffer"""
         with self.lock:
             if not self.audio_data:
                 return None
@@ -116,7 +125,7 @@ class ReSpeakerMic:
             return buffer
     
     def get_voice_channel_waveform(self):
-        """Get the latest voice channel audio as normalized waveform"""
+        """Get the latest voice channel audio (channel 0 - processed for ASR) as normalized waveform"""
         with self.lock:
             if not self.audio_data:
                 return None
@@ -133,6 +142,33 @@ class ReSpeakerMic:
             
             # Normalize to float32 [-1, 1]
             waveform = voice_channel_data.astype(np.float32) / 32768.0
+            
+            return waveform
+    
+    def get_raw_microphone_data(self, mic_channel=1):
+        """
+        Get raw microphone data from channels 1-4
+        Args:
+            mic_channel: Microphone channel (1-4) to extract
+        Returns:
+            Normalized waveform from the specified microphone channel
+        """
+        if mic_channel < 1 or mic_channel > 4:
+            raise ValueError("Microphone channel must be between 1 and 4")
+            
+        with self.lock:
+            if not self.audio_data:
+                return None
+            
+            # Get the latest audio data
+            latest_data = self.audio_data[-1]
+            audio_array = np.frombuffer(latest_data, dtype='int16')
+            
+            # Extract the specified microphone channel (channels 1-4 are raw mic data)
+            mic_channel_data = audio_array[mic_channel::self.channels]
+            
+            # Normalize to float32 [-1, 1]
+            waveform = mic_channel_data.astype(np.float32) / 32768.0
             
             return waveform
     
@@ -155,7 +191,7 @@ class ReSpeakerMic:
         return filename
     
     def save_voice_channel_wav(self, filename, sample_rate=16000):
-        """Save only the voice channel (channel 0) as mono WAV file"""
+        """Save only the voice channel (channel 0 - processed audio for ASR) as mono WAV file"""
         # Extract only the voice channel from each frame
         voice_frames = []
         for frame in self.recording_frames:

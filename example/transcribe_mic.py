@@ -17,9 +17,11 @@ record_seconds = 10  # Duration of each recording
 # Suppress NeMo and PyTorch progress bars
 os.environ['TQDM_DISABLE'] = '1'
 
-# Create transcription folder if it doesn't exist
+# Create transcription and recording folders if they don't exist
 transcription_dir = "transcription"
+recording_dir = "recording"
 os.makedirs(transcription_dir, exist_ok=True)
+os.makedirs(recording_dir, exist_ok=True)
 
 # Initialize ReSpeaker microphone
 print("Initializing ReSpeaker microphone...", flush=True)
@@ -50,13 +52,13 @@ def get_daily_filename():
     today = datetime.now()
     return f"{today.strftime('%d%m%Y')}.txt"
 
-def save_transcription(text):
-    """Save transcription to today's file with timestamp"""
+def save_transcription(text, audio_data, cycle_count):
+    """Save transcription to today's file with integer timestamp and save WAV file"""
     filename = get_daily_filename()
     filepath = os.path.join(transcription_dir, filename)
     
-    # Get current timestamp
-    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    # Get current timestamp as integer (Unix timestamp)
+    timestamp = int(time.time())
     
     # Format: timestamp|transcription text
     line = f"{timestamp}|{text}\n"
@@ -64,6 +66,15 @@ def save_transcription(text):
     # Append to file
     with open(filepath, 'a', encoding='utf-8') as f:
         f.write(line)
+    
+    # Save WAV file with timestamp-only filename
+    wav_filename = f"{timestamp}.wav"
+    wav_filepath = os.path.join(recording_dir, wav_filename)
+    
+    # Save the audio data as WAV file using the ReSpeakerMic method
+    respeaker_mic.save_voice_channel_wav(wav_filepath)
+    
+    print(f"Cycle {cycle_count}: Audio saved to {wav_filename}", flush=True)
 
 def transcribe_audio(waveform_data):
     """Transcribe waveform data"""
@@ -122,11 +133,10 @@ try:
                 # Extract and display only the transcription text
                 if transcription and len(transcription) > 0:
                     text = transcription[0].text
-                    if text.strip() and len(text) > 1:
+                    if text.strip() and len(text) > 10:
                         print(f"Cycle {cycle_count}: TRANSCRIPTION: {text}", flush=True)
                         # Save transcription to daily file
-                        save_transcription(text)
-                        print(f"Cycle {cycle_count}: Saved to {get_daily_filename()}", flush=True)
+                        save_transcription(text, all_audio_data, cycle_count)
                     else:
                         print(f"Cycle {cycle_count}: No speech detected", flush=True)
                 else:
