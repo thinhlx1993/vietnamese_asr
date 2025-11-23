@@ -17,7 +17,7 @@ class ReSpeakerMic:
     def __init__(self, rate=16000, frames_size=1024):
         self.rate = rate
         self.frames_size = frames_size
-        self.channels = 6  # ReSpeaker 4 Mic Array with 6_channels_firmware.bin
+        self.channels = 1  # ReSpeaker 4 Mic Array with 1_channels_firmware.bin
         # Channel mapping for 6_channels_firmware.bin (official Seeed documentation):
         # Channel 0: processed audio for ASR (Voice channel)
         # Channel 1-4: 4 microphones' raw data  
@@ -32,7 +32,7 @@ class ReSpeakerMic:
         self.stop_event = threading.Event()
         
         # Find the ReSpeaker device
-        device_index = None
+        device_index = 1
         print("Searching for ReSpeaker 4 Mic Array device...")
         for i in range(self.pyaudio_instance.get_device_count()):
             dev = self.pyaudio_instance.get_device_info_by_index(i)
